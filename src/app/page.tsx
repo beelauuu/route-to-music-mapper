@@ -121,6 +121,25 @@ export default function Home() {
                 Go to Dashboard
               </Link>
             </p>
+
+            {/* Test Mode */}
+            <div className="mt-6 pt-6 border-t border-white/20">
+              <div className="text-center">
+                <p className="text-gray-400 text-sm mb-3">
+                  Want to test without database setup?
+                </p>
+                <Link
+                  href="/test"
+                  className="inline-flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                >
+                  <span className="text-xl">🧪</span>
+                  Try Test Mode
+                </Link>
+                <p className="text-gray-500 text-xs mt-2">
+                  Uses mock Spotify data with your real Strava runs
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* How it Works */}
