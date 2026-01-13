@@ -28,6 +28,12 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
       return;
     }
 
+    if (!coordinates || coordinates.length === 0) {
+      setError('No coordinates provided for the route.');
+      return;
+    }
+
+    console.log('Initializing map with', coordinates.length, 'coordinates');
     mapboxgl.accessToken = token;
 
     try {
@@ -36,6 +42,8 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
       coordinates.forEach((coord) => {
         bounds.extend([coord.lng, coord.lat]);
       });
+
+      console.log('Map bounds:', bounds);
 
       // Initialize map
       map.current = new mapboxgl.Map({
@@ -53,6 +61,7 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
       });
 
     map.current.on('load', () => {
+      console.log('Map loaded successfully!');
       setMapLoaded(true);
 
       // Add route line
@@ -211,7 +220,8 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
   return (
     <div
       ref={mapContainer}
-      className="w-full h-full rounded-lg overflow-hidden shadow-lg"
+      className="w-full h-full"
+      style={{ minHeight: '500px' }}
     />
   );
 }
