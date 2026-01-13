@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const cookieStore = cookies();
     const stravaAccessToken = cookieStore.get('strava_access_token')?.value;
     const spotifyAccessToken = cookieStore.get('spotify_access_token')?.value;
+    const userIdCookie = cookieStore.get('user_id')?.value;
 
     if (!stravaAccessToken || !spotifyAccessToken) {
       return NextResponse.json(
@@ -20,8 +21,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!userIdCookie) {
+      return NextResponse.json(
+        { error: 'User not found. Please re-authenticate.' },
+        { status: 401 }
+      );
+    }
+
+    const userId = parseInt(userIdCookie);
+
     const body = await request.json();
-    const { activityId, userId } = body;
+    const { activityId } = body;
 
     if (!activityId) {
       return NextResponse.json(
@@ -122,7 +132,7 @@ export async function POST(request: NextRequest) {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING id`,
         [
-          userId || 1, // Default to user 1 for now
+          userId, // Default to user 1 for now
           stravaActivity.id,
           stravaActivity.name,
           stravaActivity.start_date,
@@ -167,7 +177,7 @@ export async function POST(request: NextRequest) {
     const processedData: ProcessedRunData = {
       activity: {
         id: activityDbId,
-        user_id: userId || 1,
+        user_id: userId,
         strava_activity_id: stravaActivity.id,
         name: stravaActivity.name,
         start_date: new Date(stravaActivity.start_date),
