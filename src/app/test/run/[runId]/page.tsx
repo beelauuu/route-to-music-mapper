@@ -184,7 +184,7 @@ export default function TestRunPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Map */}
           <div className="lg:col-span-2">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 h-[600px]">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 h-[600px] overflow-hidden">
               {runData.activity.coordinates &&
               runData.activity.coordinates.length > 0 ? (
                 <RunMap

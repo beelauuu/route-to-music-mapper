@@ -15,6 +15,7 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -23,29 +24,44 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
     const token = mapboxToken || process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!token) {
-      console.error('Mapbox token not provided');
+      setError('Mapbox token not configured. Add NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN to your .env file.');
       return;
     }
 
+    if (!coordinates || coordinates.length === 0) {
+      setError('No coordinates provided for the route.');
+      return;
+    }
+
+    console.log('Initializing map with', coordinates.length, 'coordinates');
     mapboxgl.accessToken = token;
 
-    // Calculate bounds
-    const bounds = new mapboxgl.LngLatBounds();
-    coordinates.forEach((coord) => {
-      bounds.extend([coord.lng, coord.lat]);
-    });
+    try {
+      // Calculate bounds
+      const bounds = new mapboxgl.LngLatBounds();
+      coordinates.forEach((coord) => {
+        bounds.extend([coord.lng, coord.lat]);
+      });
 
-    // Initialize map
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      bounds: bounds,
-      fitBoundsOptions: {
-        padding: 50,
-      },
-    });
+      console.log('Map bounds:', bounds);
+
+      // Initialize map
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        bounds: bounds,
+        fitBoundsOptions: {
+          padding: 50,
+        },
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setError('Failed to load map. Check your Mapbox token.');
+      });
 
     map.current.on('load', () => {
+      console.log('Map loaded successfully!');
       setMapLoaded(true);
 
       // Add route line
@@ -173,15 +189,39 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
       }
     });
 
+    } catch (err: any) {
+      console.error('Error initializing map:', err);
+      setError(err.message || 'Failed to initialize map');
+    }
+
     return () => {
       map.current?.remove();
     };
   }, [coordinates, songs, mapboxToken]);
 
+  if (error) {
+    return (
+      <div className="w-full h-full rounded-lg overflow-hidden shadow-lg bg-gray-800 flex flex-col items-center justify-center p-8 text-center">
+        <div className="text-red-400 text-xl mb-4">⚠️ Map Error</div>
+        <div className="text-gray-300 text-sm mb-4">{error}</div>
+        <div className="text-gray-400 text-xs">
+          <p className="mb-2">To fix this:</p>
+          <ol className="text-left space-y-1">
+            <li>1. Sign up at <a href="https://www.mapbox.com" target="_blank" className="text-blue-400 hover:underline">mapbox.com</a></li>
+            <li>2. Copy your access token</li>
+            <li>3. Add to .env: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your-token</li>
+            <li>4. Restart the dev server</li>
+          </ol>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={mapContainer}
-      className="w-full h-full rounded-lg overflow-hidden shadow-lg"
+      className="w-full h-full"
+      style={{ minHeight: '500px' }}
     />
   );
 }
