@@ -28,7 +28,8 @@ STRAVA_CLIENT_ID=your-strava-client-id
 STRAVA_CLIENT_SECRET=your-strava-client-secret
 
 # These can be dummy values for test mode
-NEXTAUTH_URL=http://localhost:3000
+# Note: Use 127.0.0.1 instead of localhost (required for Spotify OAuth compatibility)
+NEXTAUTH_URL=http://127.0.0.1:3000
 NEXTAUTH_SECRET=test-secret-key-123
 SPOTIFY_CLIENT_ID=dummy
 SPOTIFY_CLIENT_SECRET=dummy
@@ -62,7 +63,7 @@ npm run dev
 
 ### 7. Test It Out
 
-1. Open [http://localhost:3000](http://localhost:3000)
+1. Open [http://127.0.0.1:3000](http://127.0.0.1:3000) (or localhost:3000 in your browser)
 2. Click **"🧪 Try Test Mode"** button
 3. Click **"Connect Strava"**
 4. Authorize with your Strava account
@@ -173,4 +174,4 @@ Test mode demonstrates:
 
 ---
 
-**Ready to test?** Run `npm run dev` and go to [http://localhost:3000](http://localhost:3000) → Click "🧪 Try Test Mode"
+**Ready to test?** Run `npm run dev` and go to [http://127.0.0.1:3000](http://127.0.0.1:3000) → Click "🧪 Try Test Mode"
