@@ -18,13 +18,22 @@ export interface MockSong {
   played_at: string;
 }
 
+// Helper function to create colorful album art data URIs
+const createAlbumArt = (color: string, emoji: string): string => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">
+    <rect width="300" height="300" fill="${color}"/>
+    <text x="150" y="180" font-size="120" text-anchor="middle" fill="white">${emoji}</text>
+  </svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+};
+
 const MOCK_SONGS_POOL = [
   {
     id: 'mock1',
     name: 'Eye of the Tiger',
     artist: 'Survivor',
     album: 'Eye of the Tiger',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4e5',
+    albumArt: createAlbumArt('#FF6B35', '🐯'),
     duration: 246000,
   },
   {
@@ -32,7 +41,7 @@ const MOCK_SONGS_POOL = [
     name: "Don't Stop Me Now",
     artist: 'Queen',
     album: 'Jazz',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4e6',
+    albumArt: createAlbumArt('#FFD23F', '👑'),
     duration: 210000,
   },
   {
@@ -40,7 +49,7 @@ const MOCK_SONGS_POOL = [
     name: 'Stronger',
     artist: 'Kanye West',
     album: 'Graduation',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4e7',
+    albumArt: createAlbumArt('#8338EC', '💪'),
     duration: 312000,
   },
   {
@@ -48,7 +57,7 @@ const MOCK_SONGS_POOL = [
     name: 'Lose Yourself',
     artist: 'Eminem',
     album: '8 Mile Soundtrack',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4e8',
+    albumArt: createAlbumArt('#3A86FF', '🎤'),
     duration: 326000,
   },
   {
@@ -56,7 +65,7 @@ const MOCK_SONGS_POOL = [
     name: 'Uptown Funk',
     artist: 'Mark Ronson ft. Bruno Mars',
     album: 'Uptown Special',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4e9',
+    albumArt: createAlbumArt('#FB5607', '🕺'),
     duration: 269000,
   },
   {
@@ -64,7 +73,7 @@ const MOCK_SONGS_POOL = [
     name: 'Run the World (Girls)',
     artist: 'Beyoncé',
     album: '4',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f0',
+    albumArt: createAlbumArt('#FF006E', '👸'),
     duration: 236000,
   },
   {
@@ -72,7 +81,7 @@ const MOCK_SONGS_POOL = [
     name: 'Till I Collapse',
     artist: 'Eminem ft. Nate Dogg',
     album: 'The Eminem Show',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f1',
+    albumArt: createAlbumArt('#06FFA5', '⚡'),
     duration: 297000,
   },
   {
@@ -80,7 +89,7 @@ const MOCK_SONGS_POOL = [
     name: 'Thunderstruck',
     artist: 'AC/DC',
     album: 'The Razors Edge',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f2',
+    albumArt: createAlbumArt('#FFBE0B', '⚡'),
     duration: 292000,
   },
   {
@@ -88,7 +97,7 @@ const MOCK_SONGS_POOL = [
     name: 'Pump It',
     artist: 'The Black Eyed Peas',
     album: 'Monkey Business',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f3',
+    albumArt: createAlbumArt('#F72585', '🔊'),
     duration: 213000,
   },
   {
@@ -96,7 +105,7 @@ const MOCK_SONGS_POOL = [
     name: 'Born to Run',
     artist: 'Bruce Springsteen',
     album: 'Born to Run',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f4',
+    albumArt: createAlbumArt('#4361EE', '🏃'),
     duration: 270000,
   },
   {
@@ -104,7 +113,7 @@ const MOCK_SONGS_POOL = [
     name: 'Remember the Name',
     artist: 'Fort Minor',
     album: 'The Rising Tied',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f5',
+    albumArt: createAlbumArt('#7209B7', '🎵'),
     duration: 219000,
   },
   {
@@ -112,7 +121,7 @@ const MOCK_SONGS_POOL = [
     name: "Can't Hold Us",
     artist: 'Macklemore & Ryan Lewis',
     album: 'The Heist',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273a6f3d8b8c6c3e4a1b2c3d4f6',
+    albumArt: createAlbumArt('#06D6A0', '🚀'),
     duration: 258000,
   },
 ];
