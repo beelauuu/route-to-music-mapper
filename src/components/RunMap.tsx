@@ -16,20 +16,28 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const initializingRef = useRef(false);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || map.current || initializingRef.current) return;
+
+    initializingRef.current = true;
 
     // Use provided token or from env
     const token = mapboxToken || process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!token) {
       setError('Mapbox token not configured. Add NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN to your .env file.');
+      setLoading(false);
+      initializingRef.current = false;
       return;
     }
 
     if (!coordinates || coordinates.length === 0) {
       setError('No coordinates provided for the route.');
+      setLoading(false);
+      initializingRef.current = false;
       return;
     }
 
@@ -58,11 +66,13 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
       map.current.on('error', (e) => {
         console.error('Mapbox error:', e);
         setError('Failed to load map. Check your Mapbox token.');
+        setLoading(false);
       });
 
     map.current.on('load', () => {
       console.log('Map loaded successfully!');
       setMapLoaded(true);
+      setLoading(false);
 
       // Add route line
       if (map.current) {
@@ -192,12 +202,19 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
     } catch (err: any) {
       console.error('Error initializing map:', err);
       setError(err.message || 'Failed to initialize map');
+      setLoading(false);
+      initializingRef.current = false;
     }
 
     return () => {
-      map.current?.remove();
+      console.log('Cleanup: removing map');
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+      initializingRef.current = false;
     };
-  }, [coordinates, songs, mapboxToken]);
+  }, []); // Empty deps - only run once on mount
 
   if (error) {
     return (
@@ -218,10 +235,20 @@ export default function RunMap({ coordinates, songs, mapboxToken }: RunMapProps)
   }
 
   return (
-    <div
-      ref={mapContainer}
-      className="w-full h-full"
-      style={{ minHeight: '500px' }}
-    />
+    <div className="relative w-full h-full" style={{ minHeight: '500px' }}>
+      {loading && (
+        <div className="absolute inset-0 bg-gray-800 flex items-center justify-center z-10">
+          <div className="text-center">
+            <div className="text-white text-lg mb-2">Loading map...</div>
+            <div className="text-gray-400 text-sm">Rendering {coordinates.length} coordinates</div>
+          </div>
+        </div>
+      )}
+      <div
+        ref={mapContainer}
+        className="w-full h-full"
+        style={{ minHeight: '500px' }}
+      />
+    </div>
   );
 }
