@@ -67,19 +67,50 @@ export async function POST(request: NextRequest) {
     // Get run start and end times
     const runStartTime = new Date(stravaActivity.start_date);
     const runDuration = stravaActivity.elapsed_time; // in seconds
+    const runEndTime = new Date(runStartTime.getTime() + runDuration * 1000);
+
+    // Debug logging
+    console.log('=== RUN DEBUG INFO ===');
+    console.log('Activity ID:', stravaActivity.id);
+    console.log('Activity Name:', stravaActivity.name);
+    console.log('Run Start Time:', runStartTime.toISOString());
+    console.log('Run End Time:', runEndTime.toISOString());
+    console.log('Run Duration (seconds):', runDuration);
+    console.log('Run Duration (minutes):', (runDuration / 60).toFixed(2));
 
     // Calculate the time window for Spotify query
-    // Fetch songs a bit before and after the run to ensure we don't miss any
-    const beforeTimestamp = runStartTime.getTime() - 30 * 60 * 1000; // 30 min before
-    const afterTimestamp = runStartTime.getTime();
+    // Fetch songs starting from 30 min before the run to catch any that might have started just before
+    const afterTimestamp = runStartTime.getTime() - 30 * 60 * 1000; // 30 min before run start
+
+    console.log('Fetching Spotify songs after:', new Date(afterTimestamp).toISOString());
+    console.log('Spotify API timestamp (after):', Math.floor(afterTimestamp));
 
     // Fetch recently played songs from Spotify
-    const spotifyData = await getRecentlyPlayed(
-      spotifyAccessToken,
-      50,
-      undefined,
-      Math.floor(afterTimestamp / 1000)
-    );
+    // Note: Using 'after' to get songs played AFTER this timestamp (not 'before')
+    let spotifyData;
+    try {
+      spotifyData = await getRecentlyPlayed(
+        spotifyAccessToken,
+        50,
+        Math.floor(afterTimestamp), // Pass as 'after' parameter
+        undefined // Don't use 'before' - just get recent songs
+      );
+      console.log('✓ Successfully fetched from Spotify API');
+    } catch (spotifyError: any) {
+      console.error('❌ Spotify API Error:', spotifyError.response?.status, spotifyError.response?.data || spotifyError.message);
+      throw new Error(`Failed to fetch Spotify data: ${spotifyError.message}`);
+    }
+
+    console.log('Total songs fetched from Spotify:', spotifyData.items.length);
+
+    if (spotifyData.items.length > 0) {
+      const firstSong = spotifyData.items[0];
+      const lastSong = spotifyData.items[spotifyData.items.length - 1];
+      console.log('First song played at:', new Date(firstSong.played_at).toISOString(), '-', firstSong.track.name);
+      console.log('Last song played at:', new Date(lastSong.played_at).toISOString(), '-', lastSong.track.name);
+    } else {
+      console.log('WARNING: No songs returned from Spotify API');
+    }
 
     // Map songs to route
     const mappedSongs = mapSongsToRoute({
@@ -89,6 +120,26 @@ export async function POST(request: NextRequest) {
       coordinates,
       splits: stravaActivity.splits_metric,
     });
+
+    console.log('Songs mapped to route:', mappedSongs.length);
+    console.log('Songs filtered out:', spotifyData.items.length - mappedSongs.length);
+
+    if (mappedSongs.length === 0 && spotifyData.items.length > 0) {
+      console.log('=== NO SONGS MAPPED - DEBUG INFO ===');
+      console.log('Run time window:');
+      console.log('  Start:', runStartTime.toISOString(), '(' + runStartTime.getTime() + ')');
+      console.log('  End:  ', runEndTime.toISOString(), '(' + runEndTime.getTime() + ')');
+      console.log('\nAll Spotify songs and their timestamps:');
+      spotifyData.items.forEach((song, idx) => {
+        const songTime = new Date(song.played_at);
+        const songMs = songTime.getTime();
+        const isInRange = songMs >= runStartTime.getTime() && songMs <= runEndTime.getTime();
+        console.log(`  ${idx + 1}. ${song.track.name}`);
+        console.log(`     Played at: ${songTime.toISOString()} (${songMs})`);
+        console.log(`     In range: ${isInRange}`);
+        console.log(`     Seconds ${isInRange ? 'after' : (songMs < runStartTime.getTime() ? 'before' : 'after')} run ${isInRange ? 'start' : (songMs < runStartTime.getTime() ? 'start' : 'end')}: ${Math.abs((songMs - (isInRange || songMs < runStartTime.getTime() ? runStartTime.getTime() : runEndTime.getTime())) / 1000).toFixed(0)}s`);
+      });
+    }
 
     // Store in database
     // First, check if activity already exists
