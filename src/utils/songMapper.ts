@@ -24,15 +24,31 @@ export function mapSongsToRoute({
   const runStartMs = runStartTime.getTime();
   const runEndMs = runStartMs + runDuration * 1000;
 
+  console.log('\n=== SONG MAPPER DEBUG ===');
+  console.log('Run window: ', new Date(runStartMs).toISOString(), 'to', new Date(runEndMs).toISOString());
+  console.log('Processing', songs.length, 'songs');
+
   const mappedSongs: SongWithLocation[] = [];
+  let filteredOutBefore = 0;
+  let filteredOutAfter = 0;
 
   for (const song of songs) {
     const songTimestamp = new Date(song.played_at).getTime();
 
     // Filter out songs played outside the run timeframe
-    if (songTimestamp < runStartMs || songTimestamp > runEndMs) {
+    if (songTimestamp < runStartMs) {
+      filteredOutBefore++;
+      console.log(`  ❌ FILTERED (before): ${song.track.name} - ${new Date(song.played_at).toISOString()} (${((runStartMs - songTimestamp) / 1000).toFixed(0)}s before run)`);
       continue;
     }
+
+    if (songTimestamp > runEndMs) {
+      filteredOutAfter++;
+      console.log(`  ❌ FILTERED (after): ${song.track.name} - ${new Date(song.played_at).toISOString()} (${((songTimestamp - runEndMs) / 1000).toFixed(0)}s after run)`);
+      continue;
+    }
+
+    console.log(`  ✓ MAPPED: ${song.track.name} - ${new Date(song.played_at).toISOString()}`);
 
     // Calculate percentage complete
     let percentageComplete = (songTimestamp - runStartMs) / (runDuration * 1000);
@@ -57,6 +73,9 @@ export function mapSongsToRoute({
       coordinate_index: result?.index,
     });
   }
+
+  console.log(`\nSummary: ${mappedSongs.length} songs mapped, ${filteredOutBefore} filtered (before run), ${filteredOutAfter} filtered (after run)`);
+  console.log('=== END SONG MAPPER DEBUG ===\n');
 
   return mappedSongs;
 }
