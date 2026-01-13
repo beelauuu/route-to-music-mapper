@@ -115,6 +115,18 @@ When you're ready to use real Spotify data:
 
 ## 🐛 Troubleshooting
 
+### 404 Errors in Console / Map Not Loading
+This is the most common issue! If you see 404 errors in the browser console, it's likely because:
+
+**Solution:**
+1. Sign up at [mapbox.com](https://www.mapbox.com) (free tier is fine)
+2. Copy your default public access token from the dashboard
+3. Add to `.env`: `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your-token-here`
+4. **Restart the dev server** (important!)
+5. Refresh the page
+
+Without a Mapbox token, you'll see a gray box with error message instead of the map. The song mapping still works, you just won't see the visual display.
+
 ### "Not authenticated with Strava"
 - Make sure you've added valid Strava credentials to `.env`
 - Restart the dev server after updating `.env`
@@ -124,14 +136,15 @@ When you're ready to use real Spotify data:
 - Make sure your Strava account has running activities
 - Check that you authorized the app with "read" permissions
 
-### Map not loading
-- Add a valid Mapbox token to `.env`
-- Restart the dev server
-- Check browser console for errors
-
 ### Songs not appearing
 - This is normal - test mode generates mock songs automatically
 - Check that the run has a duration > 0
+
+### Map shows error even with token
+- Double-check your token starts with `pk.` (public token)
+- Make sure the variable name is exactly `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`
+- Verify no extra spaces or quotes in the `.env` file
+- Restart the dev server after any `.env` changes
 
 ## 📊 Sample Test Run
 
