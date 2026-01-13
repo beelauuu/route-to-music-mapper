@@ -12,7 +12,7 @@ Want to test the core functionality immediately? Try **Test Mode**:
 npm install
 # Add only Strava credentials to .env (see TEST_MODE_SETUP.md)
 npm run dev
-# Visit http://localhost:3000 and click "🧪 Try Test Mode"
+# Visit http://127.0.0.1:3000 and click "🧪 Try Test Mode"
 ```
 
 Test Mode uses:
@@ -97,7 +97,7 @@ psql -U postgres -d route_music_mapper -f schema.sql
 
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Create a new app
-3. Add redirect URI: `http://localhost:3000/api/auth/spotify/callback`
+3. Add redirect URI: `http://127.0.0.1:3000/api/auth/spotify/callback` (Note: Spotify requires 127.0.0.1, not localhost)
 4. Note your Client ID and Client Secret
 
 #### Strava API
@@ -124,7 +124,8 @@ Edit `.env` with your credentials:
 
 ```env
 # NextAuth
-NEXTAUTH_URL=http://localhost:3000
+# Important: Use 127.0.0.1 instead of localhost for Spotify OAuth compatibility
+NEXTAUTH_URL=http://127.0.0.1:3000
 NEXTAUTH_SECRET=your-secret-key-here-generate-with-openssl-rand-base64-32
 
 # Spotify OAuth
@@ -148,7 +149,7 @@ NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your-mapbox-token
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) (or localhost:3000) in your browser.
 
 ## Usage
 
