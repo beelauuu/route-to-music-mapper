@@ -4,6 +4,26 @@ A web application that visualizes which songs you listened to during your Strava
 
 ![Route to Music Mapper](https://img.shields.io/badge/Next.js-14-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-cyan)
 
+## 🧪 Quick Test Mode (No Database Setup Required!)
+
+Want to test the core functionality immediately? Try **Test Mode**:
+
+```bash
+npm install
+# Add only Strava credentials to .env (see TEST_MODE_SETUP.md)
+npm run dev
+# Visit http://localhost:3000 and click "🧪 Try Test Mode"
+```
+
+Test Mode uses:
+- ✅ Your real Strava runs with GPS data
+- 🎵 Mock Spotify songs (no Spotify API needed)
+- 💾 Browser localStorage (no database needed)
+
+**[Full Test Mode Instructions →](TEST_MODE_SETUP.md)**
+
+---
+
 ## Features
 
 - **OAuth Authentication**: Secure authentication with both Spotify and Strava APIs
