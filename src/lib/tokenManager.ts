@@ -129,3 +129,49 @@ export async function getValidToken(
 
   return result.accessToken;
 }
+
+/**
+ * Gets both Spotify and Strava tokens for a user, refreshing if necessary
+ * Useful for background processing where both APIs are needed
+ * @param userId - User ID
+ * @returns Object with both tokens
+ */
+export async function getValidTokens(userId: number): Promise<{
+  spotify: string;
+  strava: string;
+}> {
+  const spotifyResult = await ensureValidToken(userId, 'spotify');
+  const stravaResult = await ensureValidToken(userId, 'strava');
+
+  if (!spotifyResult) {
+    throw new Error(`No Spotify token found for user ${userId}`);
+  }
+
+  if (!stravaResult) {
+    throw new Error(`No Strava token found for user ${userId}`);
+  }
+
+  return {
+    spotify: spotifyResult.accessToken,
+    strava: stravaResult.accessToken,
+  };
+}
+
+/**
+ * Checks if user has valid tokens for both providers
+ * @param userId - User ID
+ * @returns True if both tokens exist and can be refreshed
+ */
+export async function hasValidTokens(userId: number): Promise<boolean> {
+  try {
+    const [spotify, strava] = await Promise.all([
+      query('SELECT refresh_token FROM auth_tokens WHERE user_id = $1 AND provider = $2', [userId, 'spotify']),
+      query('SELECT refresh_token FROM auth_tokens WHERE user_id = $1 AND provider = $2', [userId, 'strava']),
+    ]);
+
+    return spotify.rows.length > 0 && strava.rows.length > 0;
+  } catch (error) {
+    console.error('Error checking tokens:', error);
+    return false;
+  }
+}

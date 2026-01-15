@@ -34,14 +34,19 @@ export async function GET(request: NextRequest) {
     let userId: number;
 
     if (userResult.rows.length === 0) {
-      // Create new user
+      // Create new user with Strava athlete ID
       const newUserResult = await query(
-        'INSERT INTO users (email, name) VALUES ($1, $2) RETURNING id',
-        [athleteEmail, athleteName]
+        'INSERT INTO users (email, name, strava_athlete_id) VALUES ($1, $2, $3) RETURNING id',
+        [athleteEmail, athleteName, athlete.id]
       );
       userId = newUserResult.rows[0].id;
     } else {
+      // Update existing user with Strava athlete ID if not set
       userId = userResult.rows[0].id;
+      await query(
+        'UPDATE users SET strava_athlete_id = $1 WHERE id = $2 AND strava_athlete_id IS NULL',
+        [athlete.id, userId]
+      );
     }
 
     // Store tokens in database

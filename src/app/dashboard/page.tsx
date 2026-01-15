@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { StravaActivity } from '@/types';
 import { formatDistance, formatDuration } from 'date-fns';
+import WebhookSettings from '@/components/WebhookSettings';
 
 export default function Dashboard() {
   const [activities, setActivities] = useState<StravaActivity[]>([]);
@@ -124,6 +125,11 @@ export default function Dashboard() {
           <p className="text-gray-300">
             Select a run to map your music to your route
           </p>
+        </div>
+
+        {/* Webhook Settings */}
+        <div className="mb-8">
+          <WebhookSettings />
         </div>
 
         {/* Activities List */}

@@ -142,3 +142,80 @@ export async function getCurrentAthlete(accessToken: string): Promise<StravaAthl
 
   return response.data;
 }
+
+// ==================== Webhook Management ====================
+
+export interface StravaWebhookSubscription {
+  id: number;
+  resource_state: number;
+  application_id: number;
+  callback_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Create a new webhook subscription
+ * Requires application-level credentials (client_id and client_secret)
+ */
+export async function createWebhookSubscription(
+  callbackUrl: string,
+  verifyToken: string
+): Promise<StravaWebhookSubscription> {
+  const response = await axios.post<StravaWebhookSubscription>(
+    `${STRAVA_API_BASE}/push_subscriptions`,
+    {
+      client_id: process.env.STRAVA_CLIENT_ID!,
+      client_secret: process.env.STRAVA_CLIENT_SECRET!,
+      callback_url: callbackUrl,
+      verify_token: verifyToken,
+    }
+  );
+
+  return response.data;
+}
+
+/**
+ * List all webhook subscriptions for this application
+ */
+export async function listWebhookSubscriptions(): Promise<StravaWebhookSubscription[]> {
+  const response = await axios.get<StravaWebhookSubscription[]>(
+    `${STRAVA_API_BASE}/push_subscriptions`,
+    {
+      params: {
+        client_id: process.env.STRAVA_CLIENT_ID!,
+        client_secret: process.env.STRAVA_CLIENT_SECRET!,
+      },
+    }
+  );
+
+  return response.data;
+}
+
+/**
+ * Delete a webhook subscription
+ */
+export async function deleteWebhookSubscription(subscriptionId: number): Promise<void> {
+  await axios.delete(
+    `${STRAVA_API_BASE}/push_subscriptions/${subscriptionId}`,
+    {
+      params: {
+        client_id: process.env.STRAVA_CLIENT_ID!,
+        client_secret: process.env.STRAVA_CLIENT_SECRET!,
+      },
+    }
+  );
+}
+
+/**
+ * Verify webhook event signature
+ */
+export function verifyWebhookSignature(payload: string, signature: string): boolean {
+  // Strava uses HMAC-SHA256 with client_secret
+  const crypto = require('crypto');
+  const hmac = crypto.createHmac('sha256', process.env.STRAVA_CLIENT_SECRET!);
+  hmac.update(payload);
+  const calculatedSignature = hmac.digest('hex');
+
+  return calculatedSignature === signature;
+}
