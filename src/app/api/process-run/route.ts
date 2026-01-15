@@ -171,10 +171,8 @@ export async function POST(request: NextRequest) {
         ]
       );
 
-      // Delete existing songs
-      await query('DELETE FROM activity_songs WHERE activity_id = $1', [
-        activityDbId,
-      ]);
+      // Note: We no longer delete existing songs. Instead, we'll use UPSERT below
+      // to insert new songs or update existing ones, preserving their IDs
     } else {
       // Insert new activity
       const result = await query(
@@ -198,7 +196,8 @@ export async function POST(request: NextRequest) {
       activityDbId = result.rows[0].id;
     }
 
-    // Insert songs
+    // Upsert songs - insert new songs or update existing ones
+    // This preserves the primary key IDs across multiple runs
     for (const song of mappedSongs) {
       const albumArtUrl = song.track.album.images[0]?.url || '';
       const artistName = song.track.artists.map((a) => a.name).join(', ');
@@ -207,7 +206,18 @@ export async function POST(request: NextRequest) {
         `INSERT INTO activity_songs
          (activity_id, spotify_track_id, track_name, artist_name, album_name,
           album_art_url, spotify_url, played_at, percentage_complete, latitude, longitude, coordinate_index)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         ON CONFLICT (activity_id, spotify_track_id, played_at)
+         DO UPDATE SET
+           track_name = EXCLUDED.track_name,
+           artist_name = EXCLUDED.artist_name,
+           album_name = EXCLUDED.album_name,
+           album_art_url = EXCLUDED.album_art_url,
+           spotify_url = EXCLUDED.spotify_url,
+           percentage_complete = EXCLUDED.percentage_complete,
+           latitude = EXCLUDED.latitude,
+           longitude = EXCLUDED.longitude,
+           coordinate_index = EXCLUDED.coordinate_index`,
         [
           activityDbId,
           song.track.id,
