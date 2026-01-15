@@ -4,7 +4,7 @@ import { getActivity } from '@/lib/strava';
 import { getRecentlyPlayed } from '@/lib/spotify';
 import { decodePolyline } from '@/utils/polyline';
 import { mapSongsToRoute } from '@/utils/songMapper';
-import { query } from '@/lib/db';
+import { saveActivityWithSongs } from '@/lib/db/activities';
 import { ProcessedRunData } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -141,89 +141,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Store in database
-    // First, check if activity already exists
-    const existingActivity = await query(
-      'SELECT id FROM activities WHERE strava_activity_id = $1',
-      [stravaActivity.id]
+    // Store activity and songs in database using helper function
+    console.log('Saving activity and songs to database...');
+    const activityDbId = await saveActivityWithSongs(
+      {
+        strava_activity_id: stravaActivity.id,
+        name: stravaActivity.name,
+        start_date: stravaActivity.start_date,
+        elapsed_time: stravaActivity.elapsed_time,
+        distance: stravaActivity.distance,
+        polyline,
+        coordinates,
+        splits_metric: stravaActivity.splits_metric,
+      },
+      mappedSongs,
+      userId
     );
-
-    let activityDbId: number;
-
-    if (existingActivity.rows.length > 0) {
-      activityDbId = existingActivity.rows[0].id;
-
-      // Update existing activity
-      await query(
-        `UPDATE activities
-         SET name = $1, start_date = $2, elapsed_time = $3, distance = $4,
-             polyline = $5, coordinates = $6, splits_metric = $7, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $8`,
-        [
-          stravaActivity.name,
-          stravaActivity.start_date,
-          stravaActivity.elapsed_time,
-          stravaActivity.distance,
-          polyline,
-          JSON.stringify(coordinates),
-          JSON.stringify(stravaActivity.splits_metric),
-          activityDbId,
-        ]
-      );
-
-      // Delete existing songs
-      await query('DELETE FROM activity_songs WHERE activity_id = $1', [
-        activityDbId,
-      ]);
-    } else {
-      // Insert new activity
-      const result = await query(
-        `INSERT INTO activities
-         (user_id, strava_activity_id, name, start_date, elapsed_time, distance, polyline, coordinates, splits_metric)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING id`,
-        [
-          userId, // Default to user 1 for now
-          stravaActivity.id,
-          stravaActivity.name,
-          stravaActivity.start_date,
-          stravaActivity.elapsed_time,
-          stravaActivity.distance,
-          polyline,
-          JSON.stringify(coordinates),
-          JSON.stringify(stravaActivity.splits_metric),
-        ]
-      );
-
-      activityDbId = result.rows[0].id;
-    }
-
-    // Insert songs
-    for (const song of mappedSongs) {
-      const albumArtUrl = song.track.album.images[0]?.url || '';
-      const artistName = song.track.artists.map((a) => a.name).join(', ');
-
-      await query(
-        `INSERT INTO activity_songs
-         (activity_id, spotify_track_id, track_name, artist_name, album_name,
-          album_art_url, spotify_url, played_at, percentage_complete, latitude, longitude, coordinate_index)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [
-          activityDbId,
-          song.track.id,
-          song.track.name,
-          artistName,
-          song.track.album.name,
-          albumArtUrl,
-          song.track.external_urls.spotify,
-          song.played_at,
-          song.percentage_complete,
-          song.coordinate?.lat,
-          song.coordinate?.lng,
-          song.coordinate_index,
-        ]
-      );
-    }
+    console.log(`✓ Activity saved with ID: ${activityDbId}`);
 
     const processedData: ProcessedRunData = {
       activity: {
