@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS activity_songs (
   latitude FLOAT,
   longitude FLOAT,
   coordinate_index INTEGER, -- index in the polyline array
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(activity_id, spotify_track_id, played_at)
 );
 
 CREATE INDEX idx_activities_user_id ON activities(user_id);
